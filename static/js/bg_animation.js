@@ -213,6 +213,7 @@ function drawOcean() {
     });
 }
 
+function animate() {
     if(theme === 'nature') drawNature();
     else if(theme === 'city') drawCity();
     else if(theme === 'space') drawSpace();
