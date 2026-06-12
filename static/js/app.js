@@ -17,9 +17,11 @@ const csrftoken = getCookie('csrftoken');
 const reqHeaders = { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken };
 
 // Global Force logout on any refresh
-const navEntries = performance.getEntriesByType("navigation");
-if (navEntries.length > 0 && navEntries[0].type === "reload") {
-    fetch('/api/logout/', { method: 'POST', headers: reqHeaders }).then(() => {
+const isReload = (performance.navigation && performance.navigation.type === 1) || 
+                 (performance.getEntriesByType("navigation").length > 0 && performance.getEntriesByType("navigation")[0].type === "reload");
+
+if (isReload) {
+    fetch('/api/logout/', { method: 'POST', headers: reqHeaders, credentials: 'same-origin' }).then(() => {
         if (window.location.pathname !== '/login/' && window.location.pathname !== '/register/') {
             window.location.href = '/login/';
         }
@@ -131,7 +133,7 @@ let groupMembers = [];
 document.addEventListener('DOMContentLoaded', () => {
     if(document.getElementById('logout-btn')) {
         document.getElementById('logout-btn').addEventListener('click', async () => {
-            await fetch('/api/logout/', { method:'POST', headers: reqHeaders });
+            await fetch('/api/logout/', { method:'POST', headers: reqHeaders, credentials: 'same-origin' });
             window.location.href = '/login/';
         });
         loadGroups();

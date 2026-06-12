@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
-from .models import Group, GroupMember, Expense, ExpenseSplit, Settlement, UserBalance, ExpenseMessage
+from .models import Group, GroupMember, GroupInvitation, Expense, ExpenseSplit, Settlement, UserBalance, ExpenseMessage
 from django.db import transaction
 
 from django.contrib.auth.tokens import default_token_generator
