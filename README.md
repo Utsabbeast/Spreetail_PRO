@@ -48,8 +48,8 @@ python manage.py runserver
 4. Log in and start creating groups!
 
 ## Deliverables Links
-* **Public deployed app URL:** `[Placeholder - Render URL here]`
-* **GitHub repository:** `[Placeholder - GitHub URL here]`
+* **Public deployed app URL:** https://spreetail-clone.onrender.com
+* **GitHub repository:** https://github.com/Utsabbeast/Spreetail_PRO
 
 ## AI Collaboration & Prompts
 This project was entirely built through collaborative pair programming with the Gemini 2.5 Pro Agent (Antigravity).
