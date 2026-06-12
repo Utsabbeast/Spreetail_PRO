@@ -3,3 +3,4 @@ gunicorn>=21.0.0
 dj-database-url>=2.1.0
 PyMySQL>=1.1.0
 requests>=2.30.0
+whitenoise>=6.5.0
