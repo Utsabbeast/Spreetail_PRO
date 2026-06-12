@@ -1,84 +1,109 @@
-# AI_CONTEXT.md
+# AI Context: Splitwise Clone MVP
 
-## 1. Product Understanding
-The goal is to build a simplified Splitwise clone in 3 days. It must support core functionalities: email-based authentication, group management, advanced expense sharing (Equal, Exact, Percentage, Share), group/individual balances, debt simplification, and a real-time expense chat. It must look highly premium with glassmorphism and animated backgrounds.
+This document contains the exact context, schema, and architectural decisions used to generate the Splitwise Clone MVP. Another developer or AI agent should be able to reconstruct the exact same application using the specifications below.
 
-## 2. Product Scope (MVP)
-* **In Scope**:
-  * Secure Registration (Email token activation + Password Regex: min 8 chars, letters & numbers).
-  * Unique Sequence Number Tagging (e.g., `Username#12`) for exact user identification.
-  * Groups: Create, invite/add users via exact tag, remove users.
-  * Expenses: Create expenses with robust split strategies (Equally, Unequally, Percentage, Shares).
-  * Expense Chat: Real-time chat per expense.
-  * Balances: Group-wise balances and individual net balance summaries.
-  * Settlements: Record cash payments to settle debts.
-  * Themes: HTML5 Canvas animated backgrounds (Standard Gradient, Nature with falling leaves, City with traffic).
+## Product Understanding
+A highly secure, simplified version of Splitwise for managing shared expenses within groups. Key differentiators include a strict "Sequence Number" Discord-style tagging system for member identification, a greedy `heapq`-based cash flow algorithm for debt simplification, an ultra-strict session security model (single-device, refresh-logout), and a highly interactive "Glassmorphism" UI layered over a dynamic HTML5 Canvas rendering engine.
 
-## 3. Implementation Decisions
-* **User Tagging:** Exposing the auto-incrementing Database ID as the Sequence Number (`User.id`) to fulfill the "first come first serve" primary key requirement.
-* **Debt Simplification:** Implemented a greedy cash flow algorithm using Python's `heapq` module to minimize the number of payments required to settle group debts.
-* **UI Alerts:** Completely replaced native browser `alert()` and `prompt()` with custom CSS Modals and animated Toasts.
+## Product Scope
+- **Auth:** Email/Console-token based registration, regex password enforcement (8 chars, alphanumeric), single-device limit, browser-refresh logout, browser-back-arrow prevention (`popstate` manipulation).
+- **Groups:** Users create groups and invite others via a dedicated Invitation system (Accept/Deny workflow).
+- **Members:** Unique identification via `Username#ID` (e.g., Kakol#1).
+- **Expenses:** Added to groups, triggering relational balance updates. Four split strategies: Equal, Exact, Percentage, Shares.
+- **Settlement:** Simplified cash flow algorithm to calculate minimal transactions between users.
+- **Real-Time UI:** AJAX polling for expenses and invitations.
+- **Theming:** HTML5 Canvas Engine providing 6 dynamic themes (Standard, Nature, City, Space, Ocean, Cyberpunk).
 
-## 4. Engineering Requirements
-* Must use Relational Databases only.
-* Must not store plain-text passwords (uses Argon2 / Django PBKDF2 default).
-* UI must be responsive and modern without relying on heavyweight libraries like React.
+## Engineering Requirements & Tech Stack
+- **Backend:** Django 6.0.6 (Python 3.10+)
+- **Database:** SQLite3
+- **Frontend:** Vanilla JS (`app.js`, `bg_animation.js`), Vanilla CSS (`style.css`), HTML5 Templates.
+- **Iconography:** Boxicons
+- **Session Engine:** Django `contrib.sessions`, modified to enforce single-device policy.
 
-## 5. Tech Stack
-* **Frontend:** Vanilla JavaScript, HTML5 Canvas, CSS3 (CSS Variables, Flexbox, Glassmorphism).
-* **Backend:** Python + Django (REST APIs + HTML templating).
-* **Icons:** Boxicons.
+## Database Schema (Django Models)
 
-## 6. Database Schema (Relational)
-* **User**: Django's built-in `User` model.
-* **Group**: `id`, `name`, `created_at`
-* **GroupMember**: `group_id`, `user_id`, `joined_at`
-* **Expense**: `id`, `group_id`, `description`, `total_amount`, `paid_by_id`, `created_at`
-* **ExpenseSplit**: `expense_id`, `user_id`, `amount_owed`
-* **Settlement** (Payment): `id`, `group_id`, `payer_id`, `payee_id`, `amount`, `created_at`
-* **ExpenseMessage** (Chat): `id`, `expense_id`, `user_id`, `message`, `created_at`
-* **UserBalance**: `group_id`, `user_id`, `net_balance` (Maintained via Django signals).
+1. **User (auth.User):** Standard Django model. ID acts as the "Sequence Number".
+2. **Group:** 
+   - `id` (PK)
+   - `name` (CharField, max_length=100)
+   - `created_at` (DateTimeField)
+3. **GroupMember:**
+   - `group` (ForeignKey -> Group)
+   - `user` (ForeignKey -> User)
+   - `joined_at` (DateTimeField)
+4. **Expense:**
+   - `group` (ForeignKey -> Group)
+   - `description` (CharField, max_length=255)
+   - `amount` (DecimalField, max_digits=10, decimal_places=2)
+   - `paid_by` (ForeignKey -> User)
+   - `created_at` (DateTimeField)
+5. **ExpenseSplit:**
+   - `expense` (ForeignKey -> Expense)
+   - `user` (ForeignKey -> User)
+   - `amount_owed` (DecimalField, max_digits=10, decimal_places=2)
+6. **Settlement:**
+   - `group` (ForeignKey -> Group)
+   - `payer` (ForeignKey -> User)
+   - `payee` (ForeignKey -> User)
+   - `amount` (DecimalField)
+   - `created_at` (DateTimeField)
+7. **ExpenseMessage:** (For Expense-level chat)
+   - `expense` (ForeignKey -> Expense)
+   - `user` (ForeignKey -> User)
+   - `message` (TextField)
+   - `created_at` (DateTimeField)
+8. **UserBalance:** (Automatically managed via Django Signals)
+   - `user` (ForeignKey -> User)
+   - `group` (ForeignKey -> Group)
+   - `balance` (DecimalField)
+9. **GroupInvitation:**
+   - `group` (ForeignKey -> Group)
+   - `invited_user` (ForeignKey -> User)
+   - `inviter` (ForeignKey -> User)
+   - `status` (CharField: pending/accepted/declined)
 
-## 7. API Design
-* `POST /api/register/` -> Returns `reset_link` locally for demo.
-* `POST /api/set-password/`
-* `POST /api/login/`, `POST /api/logout/`
-* `GET /api/groups/`, `POST /api/groups/`
-* `GET /api/groups/<id>/members/`, `POST /api/groups/<id>/members/` (Expects `Username#ID`), `DELETE`
-* `GET /api/groups/<id>/expenses/`, `POST /api/groups/<id>/expenses/`
-* `GET /api/expenses/<id>/chat/`, `POST /api/expenses/<id>/chat/`
-* `GET /api/balances/`
-* `POST /api/settlements/`
+## API Design (JSON endpoints)
 
-## 8. Frontend Structure
-Single Page Application (SPA) utilizing a base template (`base.html`) for the canvas engine and a `dashboard.html` for the core app view. `app.js` handles all state, DOM manipulation, polling, and `fetch` calls to the REST APIs.
+- `POST /api/register/`: Accepts `username`, `email`. Creates inactive user. Sends console email with uid/token.
+- `POST /api/set-password/`: Accepts `uidb64`, `token`, `password`. Activates user.
+- `POST /api/login/`: Validates credentials. Iterates over `django_session` table and deletes previous sessions for `user.id`.
+- `POST /api/logout/`: Standard `logout(request)`.
+- `GET/POST /api/groups/`: Fetch groups or create a new group.
+- `GET/POST /api/groups/<id>/members/`: Fetch members or POST to invite a member using `username` and `sequence_number`.
+- `GET/POST /api/groups/<id>/expenses/`: Fetch expenses or POST a new expense. Expects `splits` array.
+- `GET /api/groups/<id>/balances/`: Returns each member's current balance and the minimal settlement transactions calculated by the Debt Simplification algorithm.
+- `POST /api/groups/<id>/settle/`: Records a settlement payment.
+- `GET/POST /api/invitations/`: Polled by UI. Returns pending `GroupInvitation`s.
+- `POST /api/invitations/<id>/<action>/`: Action is `accept` or `deny`.
 
-## 9. Deployment Plan
-* Designed to be deployed on Render.
-* Utilizes `dj_database_url` for easy transition to production PostgreSQL/MySQL.
-* Uses standard `gunicorn` configuration.
+## Architecture & Algorithms
 
-## 10. Testing Plan
-* Manual testing of all edge cases in UI (short passwords, invalid emails, empty expense inputs).
-* Algorithmic testing of the `heapq` Debt Simplification python module.
-* Database reset tests (using `manage.py flush`) to ensure schema integrity from a zero-state.
+### Debt Simplification Algorithm
+The system simplifies debts across a group using a Greedy algorithm (`heapq`):
+1. Calculates net balance for every user.
+2. Separates into `debtors` (negative balance) and `creditors` (positive balance) using min/max heaps.
+3. Continuously matches the largest debtor with the largest creditor to minimize total transactions.
 
-## 11. Trade-offs
-* Polling is used for the chat system to save 2 days of backend WebSocket engineering, trading slight network overhead for extreme architectural simplicity.
-* `ConsoleBackend` is used for emails to allow rapid local testing without requiring developers to register SMTP API keys.
+### Security Architecture
+- **Single Device Policy:** Enforced in `/api/login/` by querying `Session.objects.filter` and deleting keys matching the `_auth_user_id`.
+- **Browser History Trap:** `app.js` runs `window.history.pushState(null, null, window.location.href);` globally and intercepts `popstate` to prevent Back/Forward arrow navigation.
+- **Refresh Logout:** `app.js` reads `performance.getEntriesByType("navigation")[0].type`. If `"reload"`, it fires `fetch('/api/logout/')` and redirects to `/login/`.
 
-## 12. Prompts and AI Responses
-* **Prompt:** "email will be requried for registration and a confirmation email so will be send back in which they will get the link to make a password... beautiful: nature oriented in which there is multiple trees... or a busy top Road view"
-* **Response:** Implemented `ConsoleBackend` to print the secure activation link, enforced regex password policies on the Set Password screen, and built a custom HTML5 canvas rendering engine for the Nature and City themes.
-* **Prompt:** "Also give a Sequence number which is not visible until an account is made... it will work as a primary key"
-* **Response:** Exposed the Django auto-incrementing User ID to the frontend (e.g. `Kakol#1`), heavily modifying the `group_members` POST endpoint to parse the string and strictly query both the username and the ID before adding to a group.
+### Frontend Structure
+- **Vanilla SPA:** `dashboard.html` holds all modals (Add Expense, Settle, Manage Members). Modals use `.glass-panel` CSS for blurred glassmorphism.
+- **Canvas Engine:** `bg_animation.js` attaches to a fixed `canvas` element at `z-index: -1`. Runs a `requestAnimationFrame` loop. Themes (Standard, Nature, City, Space, Ocean, Cyberpunk) dynamically swap rendering logic on the fly.
 
-## 13. Changes Made During Implementation
-* Migrated from a simple username/password login to a multi-step email token activation flow.
-* Upgraded the `<select>` theme dropdown to a custom CSS modern select to remove "Old Computer" aesthetic.
-* Completely rewrote the initial static standard background into an animated, breathing radial gradient with floating orbs.
-* Implemented abandoned signup cleanup logic in the registration endpoint to prevent usernames from being locked if a user fails to set their password.
+## Deployment Plan
+1. Ensure SQLite database is secure or migrate to PostgreSQL.
+2. Change `EMAIL_BACKEND` to SMTP (SendGrid/Mailgun) for production.
+3. Collect static files (`python manage.py collectstatic`).
+4. Deploy via Render/Heroku using Waitress or Gunicorn as the WSGI server.
 
-## 14. Known Limitations
-* Real-time notifications for expense creation do not exist natively unless the user refreshes or relies on the balance polling.
-* Multi-currency calculations are not supported; everything assumes a single base currency.
+## Trade-offs & Known Limitations
+- Relying on Javascript's `performance.navigation` for refresh-logout is effective but strict; users cannot use standard browser refresh mechanics without losing their session.
+- Django's default `django_session` table requires full iteration to clear sessions by user. In a massive scale app, a custom Session backend or token architecture (JWT) would be preferred over iterating rows.
+- SQLite is used for MVP simplicity.
+
+## Prompts and AI Responses
+*(See `KEY_PROMPTS.md` for the exact prompt instructions injected into the AI).*

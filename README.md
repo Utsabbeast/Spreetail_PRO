@@ -8,7 +8,8 @@ A premium, simplified clone of Splitwise built with Django and Vanilla JavaScrip
 3. **Expenses & Splitting:** Add expenses and split them 4 ways: Equally, Exact Amounts, Percentages, and Shares.
 4. **Expense Chat:** Real-time polling chat system isolated to individual expenses.
 5. **Debt Simplification:** Uses a greedy Cash Flow algorithm via Python `heapq` to minimize the number of transactions needed to settle up group debts.
-6. **Themes:** Features an interactive Dashboard with 3 dynamic HTML5 canvas background themes (Standard Gradient, Nature with falling leaves, City with moving traffic).
+6. **Themes:** Features an interactive Dashboard with 6 dynamic HTML5 canvas background themes (Standard Gradient, Nature, City, Space, Ocean, Cyberpunk).
+7. **Strict Security Model:** Implements global refresh-logout, Back-Arrow browser prevention via `popstate` manipulation, and single-device concurrent session enforcement.
 
 ## Local Setup Instructions
 

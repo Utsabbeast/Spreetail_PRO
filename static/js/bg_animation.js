@@ -132,9 +132,134 @@ function drawStandard() {
     ctx.globalCompositeOperation = "source-over";
 }
 
+// --- Space Theme Elements ---
+const stars = [];
+for(let i=0; i<150; i++) {
+    stars.push({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        size: Math.random() * 2,
+        speed: Math.random() * 0.5 + 0.1
+    });
+}
+let comets = [];
+
+function drawSpace() {
+    ctx.fillStyle = '#050510';
+    ctx.fillRect(0, 0, w, h);
+    
+    ctx.fillStyle = 'white';
+    stars.forEach(s => {
+        s.y -= s.speed;
+        if(s.y < 0) { s.y = h; s.x = Math.random() * w; }
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.size, 0, Math.PI*2);
+        ctx.fill();
+    });
+    
+    if(Math.random() < 0.005) {
+        comets.push({ x: w + 50, y: Math.random() * (h/2), vx: -8, vy: 4, life: 100 });
+    }
+    
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.lineWidth = 2;
+    comets.forEach((c, i) => {
+        ctx.beginPath();
+        ctx.moveTo(c.x, c.y);
+        ctx.lineTo(c.x - c.vx*4, c.y - c.vy*4);
+        ctx.stroke();
+        c.x += c.vx;
+        c.y += c.vy;
+        c.life--;
+        if(c.life < 0) comets.splice(i, 1);
+    });
+}
+
+// --- Ocean Theme Elements ---
+const bubbles = [];
+for(let i=0; i<60; i++) {
+    bubbles.push({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        size: Math.random() * 10 + 2,
+        speed: Math.random() * 2 + 1,
+        wobble: Math.random() * Math.PI * 2
+    });
+}
+
+function drawOcean() {
+    let grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, '#0284c7');
+    grad.addColorStop(1, '#082f49');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+    
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.lineWidth = 1;
+    bubbles.forEach(b => {
+        b.y -= b.speed;
+        b.wobble += 0.05;
+        let wx = b.x + Math.sin(b.wobble) * 10;
+        
+        if(b.y < -20) { b.y = h + 20; b.x = Math.random() * w; }
+        
+        ctx.beginPath();
+        ctx.arc(wx, b.y, b.size, 0, Math.PI*2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(wx - b.size/3, b.y - b.size/3, b.size/4, 0, Math.PI*2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.fill();
+    });
+}
+
+// --- Cyberpunk Theme Elements ---
+let cyberOffset = 0;
+
+function drawCyberpunk() {
+    ctx.fillStyle = '#09090b';
+    ctx.fillRect(0, 0, w, h);
+    
+    ctx.strokeStyle = 'rgba(236, 72, 153, 0.4)'; // neon pink
+    ctx.lineWidth = 2;
+    cyberOffset = (cyberOffset + 2) % 40;
+    
+    // Horizontal lines
+    for(let i=h/2; i<h; i+=40) {
+        let perspectiveY = h/2 + Math.pow((i - h/2)/10, 2) + cyberOffset;
+        if(perspectiveY < h) {
+            ctx.beginPath();
+            ctx.moveTo(0, perspectiveY);
+            ctx.lineTo(w, perspectiveY);
+            ctx.stroke();
+        }
+    }
+    
+    // Vertical perspective lines
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)'; // neon blue
+    let vpX = w/2;
+    let vpY = h/2;
+    for(let i=-20; i<=20; i++) {
+        let lx = vpX + i*100;
+        ctx.beginPath();
+        ctx.moveTo(vpX, vpY);
+        ctx.lineTo(lx, h);
+        ctx.stroke();
+    }
+    
+    // Sun
+    ctx.beginPath();
+    ctx.arc(vpX, vpY - 20, 80, Math.PI, 0);
+    ctx.fillStyle = 'rgba(245, 158, 11, 0.8)';
+    ctx.fill();
+}
+
 function animate() {
     if(theme === 'nature') drawNature();
     else if(theme === 'city') drawCity();
+    else if(theme === 'space') drawSpace();
+    else if(theme === 'ocean') drawOcean();
+    else if(theme === 'cyberpunk') drawCyberpunk();
     else drawStandard();
     
     requestAnimationFrame(animate);

@@ -14,11 +14,12 @@
 
 ## 2. Architecture
 - **Tech Stack:** Django (Python) Backend, Vanilla JavaScript/HTML5/CSS3 Frontend. No heavyweight JS frameworks to ensure rapid 3-day MVP delivery while maintaining high performance.
-- **Database Schema:** 
-  - Core Models: `User`, `Group`, `GroupMember`, `Expense`, `ExpenseSplit`, `Settlement`, `ExpenseMessage`, and `UserBalance`.
+  - Core Models: `User` (Sequence Number ID), `Group`, `Expense`, `ExpenseSplit`, `Settlement`, `ExpenseMessage`, and `UserBalance`, `GroupInvitation`.
+  - Strict Auth Models: Single-device login tracking, refresh-logout, history `popstate` blocking.
   - SQLite for local development, easily swappable to MySQL for production via `dj_database_url`.
 - **API Design:** RESTful API endpoints for all CRUD operations, leveraging JSON payloads and Django session authentication.
 - **Frontend Structure:** Single Page Application (SPA) feel achieved through Vanilla JS `fetch` calls, manipulating the DOM via custom Modals and Toasts (completely replacing native browser alerts).
+- **Themes & UI:** HTML5 Canvas dynamic backgrounds (Standard, Nature, City, Space, Ocean, Cyberpunk) with Glassmorphism overlay.
 - **Deployment Approach:** Configured to be easily deployable on platforms like Render using standard Django deployment practices.
 
 ## 3. AI Collaboration Process
