@@ -12,7 +12,7 @@ A highly secure, simplified version of Splitwise for managing shared expenses wi
 - **Expenses:** Added to groups, triggering relational balance updates. Four split strategies: Equal, Exact, Percentage, Shares.
 - **Settlement:** Simplified cash flow algorithm to calculate minimal transactions between users.
 - **Real-Time UI:** AJAX polling for expenses and invitations.
-- **Theming:** HTML5 Canvas Engine providing 6 dynamic themes (Standard, Nature, City, Space, Ocean, Cyberpunk).
+- **Theming:** HTML5 Canvas Engine providing 5 dynamic themes (Standard, Nature, City, Space, Ocean).
 
 ## Engineering Requirements & Tech Stack
 - **Backend:** Django 6.0.6 (Python 3.10+)
@@ -92,7 +92,7 @@ The system simplifies debts across a group using a Greedy algorithm (`heapq`):
 
 ### Frontend Structure
 - **Vanilla SPA:** `dashboard.html` holds all modals (Add Expense, Settle, Manage Members). Modals use `.glass-panel` CSS for blurred glassmorphism.
-- **Canvas Engine:** `bg_animation.js` attaches to a fixed `canvas` element at `z-index: -1`. Runs a `requestAnimationFrame` loop. Themes (Standard, Nature, City, Space, Ocean, Cyberpunk) dynamically swap rendering logic on the fly.
+- **Canvas Engine:** `bg_animation.js` attaches to a fixed `canvas` element at `z-index: -1`. Runs a `requestAnimationFrame` loop. Themes (Standard, Nature, City, Space, Ocean) dynamically swap rendering logic on the fly.
 
 ## Deployment Plan
 1. Ensure SQLite database is secure or migrate to PostgreSQL.
