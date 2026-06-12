@@ -187,7 +187,6 @@ document.getElementById('manage-members-btn')?.addEventListener('click', () => {
 });
 function closeMembersModal() { membersModal.classList.add('hidden'); }
 
-let groupMembers = [];
 let pendingMembers = [];
 
 async function fetchMembers() {
