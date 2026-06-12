@@ -98,7 +98,7 @@ def set_password_api(request):
             return JsonResponse({'status': 'error', 'message': 'Invalid or expired link.'}, status=400)
 
 def set_password_page(request, uidb64, token):
-    return render(request, 'set_password.html')
+    return render(request, 'set_password.html', {'uid': uidb64, 'token': token})
 
 @login_required
 @csrf_exempt
