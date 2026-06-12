@@ -137,6 +137,9 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = '/login/';
         });
         loadGroups();
+        setInterval(loadGroups, 15000);
+        loadInvitations();
+        setInterval(loadInvitations, 10000);
     }
 });
 
@@ -461,11 +464,7 @@ window.handleInvite = async (id, action) => {
     loadGroups(); // Refresh groups if accepted
 };
 
-// Initial calls
-loadGroups();
-setInterval(loadGroups, 15000);
-loadInvitations();
-setInterval(loadInvitations, 10000);
+// Empty - Polling moved to DOMContentLoaded
 
 function closeChatModal() {
     chatModal.classList.add('hidden');
