@@ -189,8 +189,8 @@ for(let i=0; i<60; i++) {
 
 function drawOcean() {
     let grad = ctx.createLinearGradient(0, 0, 0, h);
-    grad.addColorStop(0, '#0284c7');
-    grad.addColorStop(1, '#082f49');
+    grad.addColorStop(0, '#023c5a'); // darker top
+    grad.addColorStop(1, '#041829'); // darker bottom
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, w, h);
     
@@ -213,53 +213,10 @@ function drawOcean() {
     });
 }
 
-// --- Cyberpunk Theme Elements ---
-let cyberOffset = 0;
-
-function drawCyberpunk() {
-    ctx.fillStyle = '#09090b';
-    ctx.fillRect(0, 0, w, h);
-    
-    ctx.strokeStyle = 'rgba(236, 72, 153, 0.4)'; // neon pink
-    ctx.lineWidth = 2;
-    cyberOffset = (cyberOffset + 2) % 40;
-    
-    // Horizontal lines
-    for(let i=h/2; i<h; i+=40) {
-        let perspectiveY = h/2 + Math.pow((i - h/2)/10, 2) + cyberOffset;
-        if(perspectiveY < h) {
-            ctx.beginPath();
-            ctx.moveTo(0, perspectiveY);
-            ctx.lineTo(w, perspectiveY);
-            ctx.stroke();
-        }
-    }
-    
-    // Vertical perspective lines
-    ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)'; // neon blue
-    let vpX = w/2;
-    let vpY = h/2;
-    for(let i=-20; i<=20; i++) {
-        let lx = vpX + i*100;
-        ctx.beginPath();
-        ctx.moveTo(vpX, vpY);
-        ctx.lineTo(lx, h);
-        ctx.stroke();
-    }
-    
-    // Sun
-    ctx.beginPath();
-    ctx.arc(vpX, vpY - 20, 80, Math.PI, 0);
-    ctx.fillStyle = 'rgba(245, 158, 11, 0.8)';
-    ctx.fill();
-}
-
-function animate() {
     if(theme === 'nature') drawNature();
     else if(theme === 'city') drawCity();
     else if(theme === 'space') drawSpace();
     else if(theme === 'ocean') drawOcean();
-    else if(theme === 'cyberpunk') drawCyberpunk();
     else drawStandard();
     
     requestAnimationFrame(animate);
