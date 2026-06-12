@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="dashboard-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="brand"><i class='bx bxs-wallet' ></i> Splitwise</div>
+        <div class="sidebar-nav">
+            <button id="view-invitations-btn" class="btn secondary" style="width:100%; text-align:left; padding:0.75rem 1rem; border:none; background:rgba(255,255,255,0.1); color:white; cursor:pointer; font-weight:600; display:flex; align-items:center; justify-content:space-between; border-radius:8px; margin-bottom: 1rem;">
+                <span style="display:flex; align-items:center; gap:0.5rem;"><i class='bx bx-envelope'></i> Invitations</span>
+                <span id="invite-badge" style="background:var(--primary); color:white; padding:0.1rem 0.4rem; border-radius:12px; font-size:0.75rem; display:none;">0</span>
+            </button>
+            <h3>Groups <button id="new-group-btn" class="btn-icon"><i class='bx bx-plus'></i></button></h3>
+            <ul id="group-list">
+                <!-- Injected via JS -->
+            </ul>
+        </div>
+        <div class="sidebar-footer">
+            <button id="logout-btn" class="btn text">Logout</button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="topbar" style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap: 1rem;">
+            <div style="display:flex; flex-wrap:wrap; gap: 1rem; align-items:center;">
+                <h2 id="active-group-title" style="margin:0;">Select a Group</h2>
+                <div class="topbar-actions" id="group-actions" style="display:none; flex-wrap:wrap; gap: 0.5rem;">
+                    <button id="manage-members-btn" class="btn secondary"><i class='bx bx-group' ></i> Manage Members</button>
+                    <button id="add-expense-btn" class="btn primary"><i class='bx bx-receipt' ></i> Add Expense</button>
+                    <button id="settle-up-btn" class="btn success"><i class='bx bx-check-shield' ></i> Settle Up</button>
+                </div>
+            </div>
+            
+            <div style="display:flex; gap:1rem; align-items:center; margin-left: auto; flex-wrap:wrap;">
+                <span class="user-tag"><i class='bx bx-purchase-tag'></i> {{ request.user.username }}#{{ request.user.id }}</span>
+                <select id="theme-selector" class="modern-select">
+                    <option value="standard">Standard Theme</option>
+                    <option value="nature">Nature Theme</option>
+                    <option value="city">City Theme</option>
+                </select>
+            </div>
+        </header>
+
+        <div class="content-body" id="group-content" style="display:none;">
+            <div class="expenses-section">
+                <h3>Expenses</h3>
+                <div id="expense-list"></div>
+            </div>
+            
+            <div class="balances-section">
+                <h3>Balances</h3>
+                <div id="balance-list"></div>
+            </div>
+    </main>
+
+    <!-- Chat Modal -->
+    <div id="chat-modal" class="modal hidden">
+        <div class="modal-content chat-content">
+            <div class="modal-header">
+                <h3><i class='bx bx-message-rounded-dots' ></i> Expense Chat</h3>
+                <button class="close-btn" onclick="closeChatModal()"><i class='bx bx-x' ></i></button>
+            </div>
+            <div class="chat-messages" id="chat-messages"></div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="Type a message...">
+                <button id="send-chat-btn" class="btn primary"><i class='bx bx-send' ></i></button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Expense Modal -->
+    <div id="expense-modal" class="modal hidden">
+        <div class="modal-content glass-panel" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3><i class='bx bx-receipt' ></i> Add Expense</h3>
+                <button class="close-btn" onclick="closeExpenseModal()"><i class='bx bx-x' ></i></button>
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <input type="text" id="exp-desc">
+            </div>
+            <div class="form-group">
+                <label>Total Amount ($)</label>
+                <input type="number" id="exp-amount">
+            </div>
+            <div class="form-group">
+                <label>Paid By</label>
+                <select id="exp-payer" class="modern-select" style="width:100%;"></select>
+            </div>
+            <div class="form-group">
+                <label>Split Strategy</label>
+                <select id="split-strategy" class="modern-select" style="width:100%;">
+                    <option value="equal">Equally</option>
+                    <option value="exact">Exact Amounts</option>
+                    <option value="percent">By Percentage</option>
+                    <option value="share">By Share</option>
+                </select>
+            </div>
+            <div class="split-section" id="split-inputs">
+                <!-- Injected via JS -->
+            </div>
+            <button id="save-expense-btn" class="btn primary">Save Expense</button>
+        </div>
+    </div>
+
+    <!-- Manage Members Modal -->
+    <div id="members-modal" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h3><i class='bx bx-group' ></i> Manage Members</h3>
+                <button class="close-btn" onclick="closeMembersModal()"><i class='bx bx-x' ></i></button>
+            </div>
+            <div id="manage-members-list" style="margin-bottom: 1.5rem;"></div>
+            <div class="form-group" style="display:flex; gap:0.5rem;">
+                <input type="text" id="new-member-username" placeholder="Username" style="flex:2;">
+                <input type="number" id="new-member-seq" placeholder="Seq #" style="flex:1;" min="1">
+            </div>
+            <button id="submit-add-member-btn" class="btn secondary" style="width:100%"><i class='bx bx-paper-plane'></i> Send Invite</button>
+        </div>
+    </div>
+    
+    <!-- Settle Up Modal -->
+    <div id="settle-modal" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h3><i class='bx bx-check-shield' ></i> Settle Up</h3>
+                <button class="close-btn" onclick="closeSettleModal()"><i class='bx bx-x' ></i></button>
+            </div>
+            <div class="form-group">
+                <label>Who are you paying?</label>
+                <select id="settle-payee" class="modern-select" style="width:100%;"></select>
+            </div>
+            <div class="form-group">
+                <label>Amount</label>
+                <input type="number" step="0.01" id="settle-amount" placeholder="0.00">
+            </div>
+            <button id="submit-settle-btn" class="btn success" style="width:100%">Record Payment</button>
+        </div>
+    </div>
+
+    <!-- Group Name Modal -->
+    <div id="group-name-modal" class="modal hidden">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h3><i class='bx bx-plus' ></i> New Group</h3>
+                <button class="close-btn" onclick="closeGroupModal()"><i class='bx bx-x' ></i></button>
+            </div>
+            <div class="form-group">
+                <label>Group Name</label>
+                <input type="text" id="new-group-name" placeholder="E.g., Trip to Hawaii">
+            </div>
+            <button id="submit-group-btn" class="btn primary" style="width:100%">Create Group</button>
+        </div>
+    </div>
+    <div id="invitations-modal" class="modal hidden">
+        <div class="modal-content glass-panel" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2><i class='bx bx-envelope'></i> Pending Invitations</h2>
+                <button class="close-btn" onclick="document.getElementById('invitations-modal').classList.add('hidden')"><i class='bx bx-x' ></i></button>
+            </div>
+            <div id="invitations-list" style="margin-top:1rem; max-height:300px; overflow-y:auto; display:flex; flex-direction:column; gap:0.5rem;">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
