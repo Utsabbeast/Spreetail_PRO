@@ -175,7 +175,11 @@ def group_members(request, group_id):
     group = Group.objects.get(id=group_id)
     if request.method == 'GET':
         members = group.members.all()
-        return JsonResponse({'members': [{'id': m.id, 'username': m.username} for m in members]})
+        pending = GroupInvitation.objects.filter(group=group)
+        return JsonResponse({
+            'members': [{'id': m.id, 'username': m.username} for m in members],
+            'pending': [{'id': p.user.id, 'username': p.user.username} for p in pending]
+        })
     elif request.method == 'POST':
         data = json.loads(request.body)
         username = data.get('username')

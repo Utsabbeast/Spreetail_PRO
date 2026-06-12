@@ -185,20 +185,32 @@ document.getElementById('manage-members-btn')?.addEventListener('click', () => {
 });
 function closeMembersModal() { membersModal.classList.add('hidden'); }
 
+let groupMembers = [];
+let pendingMembers = [];
+
 async function fetchMembers() {
-    const res = await fetch(`/api/groups/${currentGroupId}/members/`);
+    const res = await fetch(`/api/groups/${currentGroupId}/members/`, { headers: reqHeaders });
     const data = await res.json();
-    groupMembers = data.members;
+    groupMembers = data.members || [];
+    pendingMembers = data.pending || [];
 }
 
 function renderMembersList() {
     const list = document.getElementById('manage-members-list');
-    list.innerHTML = groupMembers.map(m => `
+    let html = groupMembers.map(m => `
         <div class="split-row" style="margin-bottom: 0.5rem;">
             <span><i class='bx bx-user'></i> ${m.username}</span>
             <button class="btn-icon" onclick="removeMember(${m.id})"><i class='bx bx-trash' style="color:var(--danger)"></i></button>
         </div>
     `).join('');
+    
+    html += pendingMembers.map(m => `
+        <div class="split-row" style="margin-bottom: 0.5rem; opacity: 0.7;">
+            <span><i class='bx bx-time'></i> ${m.username} <small>(Invitation sent)</small></span>
+        </div>
+    `).join('');
+    
+    list.innerHTML = html;
 }
 
 document.getElementById('submit-add-member-btn')?.addEventListener('click', async () => {
@@ -216,6 +228,7 @@ document.getElementById('submit-add-member-btn')?.addEventListener('click', asyn
         document.getElementById('new-member-username').value = '';
         document.getElementById('new-member-seq').value = '';
         showToast('Invitation sent successfully!');
+        fetchMembers().then(renderMembersList);
     } else {
         showToast(data.message || "Failed to add", "error");
     }
