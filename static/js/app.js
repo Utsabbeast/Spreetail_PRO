@@ -16,14 +16,21 @@ function getCookie(name) {
 const csrftoken = getCookie('csrftoken');
 const reqHeaders = { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken };
 
-if (window.location.pathname === '/') {
-    const navEntries = performance.getEntriesByType("navigation");
-    if (navEntries.length > 0 && navEntries[0].type === "reload") {
-        fetch('/api/logout/', { method: 'POST', headers: reqHeaders }).then(() => {
+// Global Force logout on any refresh
+const navEntries = performance.getEntriesByType("navigation");
+if (navEntries.length > 0 && navEntries[0].type === "reload") {
+    fetch('/api/logout/', { method: 'POST', headers: reqHeaders }).then(() => {
+        if (window.location.pathname !== '/login/' && window.location.pathname !== '/register/') {
             window.location.href = '/login/';
-        });
-    }
+        }
+    });
 }
+
+// Disable browser back/forward arrows
+window.history.pushState(null, null, window.location.href);
+window.addEventListener('popstate', function(event) {
+    window.history.pushState(null, null, window.location.href);
+});
 
 function showToast(message, type='info') {
     const container = document.getElementById('toast-container');

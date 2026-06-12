@@ -13,6 +13,8 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.core.mail import send_mail
 from django.shortcuts import render
+from django.contrib.sessions.models import Session
+from django.utils import timezone
 
 @csrf_exempt
 def register_view(request):
@@ -139,6 +141,14 @@ def login_view(request):
         user = authenticate(request, username=data['username'], password=data['password'])
         if user is not None:
             login(request, user)
+            
+            # Enforce single device login
+            for session in Session.objects.filter(expire_date__gte=timezone.now()):
+                session_data = session.get_decoded()
+                if session_data.get('_auth_user_id') == str(user.id):
+                    if session.session_key != request.session.session_key:
+                        session.delete()
+                        
             return JsonResponse({'status': 'success', 'user_id': user.id})
         return JsonResponse({'status': 'error', 'message': 'Invalid credentials'}, status=401)
 
