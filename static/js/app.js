@@ -484,12 +484,119 @@ async function loadChat() {
     `).join('');
 }
 
-document.getElementById('send-chat-btn')?.addEventListener('click', async () => {
+document.getElementById('send-chat-btn').addEventListener('click', async () => {
+    if(!currentExpenseId) return;
     const input = document.getElementById('chat-input');
-    const message = input.value;
-    if(!message.trim()) return;
-    await fetch(`/api/expenses/${currentExpenseId}/chat/`, { method: 'POST', headers: reqHeaders, body: JSON.stringify({message}) });
+    await fetch(`/api/expenses/${currentExpenseId}/chat/`, {
+        method: 'POST', headers: reqHeaders,
+        body: JSON.stringify({message: input.value})
+    });
     input.value = '';
     loadChat();
     chatMsgs.scrollTop = chatMsgs.scrollHeight;
 });
+
+// === CSV IMPORT ===
+let pendingImportRows = [];
+const importModal = document.getElementById('import-modal');
+
+window.openImportModal = () => {
+    if(!currentGroupId) {
+        showToast("Please select a group first.");
+        return;
+    }
+    importModal.classList.remove('hidden');
+    document.getElementById('csv-file-input').value = '';
+    document.getElementById('import-report-container').classList.add('hidden');
+};
+
+window.closeImportModal = () => {
+    importModal.classList.add('hidden');
+};
+
+window.uploadCSV = async () => {
+    const fileInput = document.getElementById('csv-file-input');
+    if(fileInput.files.length === 0) {
+        showToast("Please select a file.");
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+    
+    try {
+        const res = await fetch(`/api/groups/${currentGroupId}/import/`, {
+            method: 'POST',
+            body: formData // No JSON headers for FormData
+        });
+        const data = await res.json();
+        if(data.status === 'success') {
+            displayImportReport(data.report);
+        } else {
+            showToast(data.message || "Failed to analyze CSV");
+        }
+    } catch(e) {
+        showToast("Error uploading file.");
+    }
+};
+
+function displayImportReport(report) {
+    document.getElementById('import-report-container').classList.remove('hidden');
+    const tbody = document.getElementById('import-report-body');
+    tbody.innerHTML = '';
+    pendingImportRows = [];
+    
+    report.forEach(r => {
+        let statusColor = 'green';
+        let statusIcon = 'bx-check-circle';
+        let actionsText = r.actions.join('<br>');
+        
+        if(r.status === 'auto_fixed') {
+            statusColor = 'orange';
+            statusIcon = 'bx-error-circle';
+        } else if(r.status === 'rejected') {
+            statusColor = 'red';
+            statusIcon = 'bx-x-circle';
+            actionsText = r.errors.join('<br>');
+        } else {
+            actionsText = "Clean row";
+        }
+        
+        if (r.status !== 'rejected') {
+            pendingImportRows.push(r.parsed_data);
+        }
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${r.row_id}</td>
+            <td style="color: ${statusColor}"><i class='bx ${statusIcon}'></i> ${r.status}</td>
+            <td style="font-size: 0.85rem;">${actionsText}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+window.confirmImport = async () => {
+    if(pendingImportRows.length === 0) {
+        showToast("No valid rows to import.");
+        return;
+    }
+    try {
+        const res = await fetch(`/api/groups/${currentGroupId}/import/confirm/`, {
+            method: 'POST',
+            headers: reqHeaders,
+            body: JSON.stringify({rows: pendingImportRows})
+        });
+        const data = await res.json();
+        if(data.status === 'success') {
+            showToast("Import successful!");
+            closeImportModal();
+            loadExpenses();
+            loadBalances();
+        } else {
+            showToast("Failed to confirm import.");
+        }
+    } catch(e) {
+        showToast("Error confirming import.");
+    }
+};

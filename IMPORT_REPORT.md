@@ -1,26 +1,71 @@
-# CSV Import Anomaly Report
+# Import Report
 
-*Note: This report details the anomaly detection protocols applied during bulk CSV expense ingestion.*
+*Generated from `expenses_export.csv` ingestion run.*
 
-## Batch Import Log: `group_expenses_october.csv`
-**Timestamp:** 2026-06-12 14:45:00 UTC
-**Total Rows Processed:** 45
-**Rows Successfully Imported:** 42
-**Rows Rejected (Anomalies):** 3
+## Summary
+- **Total Rows Processed:** 42
+- **Clean Rows Imported:** 26
+- **Auto-Fixed Rows Imported:** 12
+- **Rejected Rows (Require Manual Fix):** 4
 
-### Detected Anomalies and Actions Taken
+## Detailed Log
 
-1. **Row 12: Invalid User Reference**
-   - **Anomaly:** The CSV listed `Payer` as `JohnDoe#999`. No user exists in the system with Sequence Number `#999`.
-   - **Action Taken:** Row 12 rejected. A validation error was returned to the user: *"User JohnDoe#999 does not exist in the database."*
+**Row 12:**
+- **Status:** 🔴 Rejected
+- **Action:** Missing 'paid_by' user.
 
-2. **Row 28: Mathematical Split Mismatch**
-   - **Anomaly:** The `Split Strategy` was set to `exact`, with a `Total Amount` of $100.00. However, the exact splits defined in the CSV were `$40.00` and `$50.00` (Sum: $90.00). The split amounts did not equal the total expense amount.
-   - **Action Taken:** Row 28 rejected. The system enforced mathematical integrity and returned an error: *"The sum of exact split amounts ($90.00) must equal the total expense amount ($100.00)."*
+**Row 13:**
+- **Status:** 🟠 Auto-Fixed
+- **Action:** Detected settlement disguised as an expense. Converted to Settlement record.
 
-3. **Row 35: Negative Expense Amount**
-   - **Anomaly:** The `Total Amount` for a dinner expense was listed as `-$45.00`.
-   - **Action Taken:** Row 35 rejected. The database schema strictly enforces positive `DecimalField` values for expenses. Error returned: *"Expense amount cannot be negative or zero."*
+**Row 14:**
+- **Status:** 🔴 Rejected
+- **Action:** Percentages sum to 110%, not 100%.
 
-### Conclusion
-The data integrity layer successfully blocked mathematically impossible splits and orphaned user references. All 42 valid rows were processed, generating the corresponding `ExpenseSplit` and `Settlement` records, and balances were updated according to the Greedy Simplification Algorithm.
+**Row 19:**
+- **Status:** 🟠 Auto-Fixed
+- **Action:** Converted USD to INR at rate 83.00.
+
+**Row 20:**
+- **Status:** 🟠 Auto-Fixed
+- **Action:** Converted USD to INR at rate 83.00.
+
+**Row 22:**
+- **Status:** 🟠 Auto-Fixed
+- **Action:** Converted USD to INR at rate 83.00. Guest 'Dev's friend Kabir' detected. Reallocating guest share to host (dev).
+
+**Row 25:**
+- **Status:** 🟠 Auto-Fixed
+- **Action:** Negative amount detected. Treating as a group refund. Converted USD to INR at rate 83.00.
+
+**Row 26:**
+- **Status:** 🟠 Auto-Fixed
+- **Action:** Auto-fixed 'Mar-14' date format to standard datetime.
+
+**Row 27:**
+- **Status:** 🟠 Auto-Fixed
+- **Action:** Missing currency defaulted to INR.
+
+**Row 30:**
+- **Status:** 🔴 Rejected
+- **Action:** Zero amount expense detected. Dropping row.
+
+**Row 31:**
+- **Status:** 🔴 Rejected
+- **Action:** Percentages sum to 110%, not 100%.
+
+**Row 32:**
+- **Status:** 🟠 Auto-Fixed
+- **Action:** Detected user moving out. Logged exit date.
+
+**Row 35:**
+- **Status:** 🟠 Auto-Fixed
+- **Action:** Excluded meera from split (moved out before this date).
+
+**Row 37:**
+- **Status:** 🟠 Auto-Fixed
+- **Action:** Detected settlement disguised as an expense. Converted to Settlement record.
+
+**Row 41:**
+- **Status:** 🟠 Auto-Fixed
+- **Action:** Split type 'equal' overridden by explicit split details.

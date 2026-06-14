@@ -18,6 +18,8 @@ urlpatterns = [
     path('api/groups/<int:group_id>/balances/', views.balances),
     path('api/groups/<int:group_id>/settle/', views.settle_up),
     path('api/expenses/<int:expense_id>/chat/', views.expense_chat),
+    path('api/groups/<int:group_id>/import/', views.import_csv),
+    path('api/groups/<int:group_id>/import/confirm/', views.confirm_import),
     path('api/invitations/', views.user_invitations),
     path('api/invitations/<int:invite_id>/<str:action>/', views.handle_invitation),
 ]

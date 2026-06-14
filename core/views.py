@@ -241,6 +241,7 @@ def balances(request, group_id):
     return JsonResponse({'balances': [{'user_id': b.user.id, 'username': b.user.username, 'net_balance': float(b.net_balance)} for b in bals]})
 
 @login_required
+@login_required
 @csrf_exempt
 def settle_up(request, group_id):
     if request.method == 'POST':
@@ -250,6 +251,44 @@ def settle_up(request, group_id):
         Settlement.objects.create(
             group=group, payer=request.user, payee=payee, amount=data['amount']
         )
+        return JsonResponse({'status': 'success'})
+
+from core.services.importer import CSVProcessor
+
+@login_required
+@csrf_exempt
+def import_csv(request, group_id):
+    if request.method == 'POST':
+        file = request.FILES.get('file')
+        if not file:
+            return JsonResponse({'status': 'error', 'message': 'No file uploaded'}, status=400)
+        content = file.read().decode('utf-8')
+        processor = CSVProcessor(group_id, content)
+        report = processor.process()
+        return JsonResponse({'status': 'success', 'report': report})
+
+@login_required
+@csrf_exempt
+@transaction.atomic
+def confirm_import(request, group_id):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        rows = data.get('rows', [])
+        group = Group.objects.get(id=group_id)
+        for row in rows:
+            if row.get('is_settlement'):
+                payee = User.objects.get(id=row['payee']['id'])
+                payer = User.objects.get(id=row['paid_by']['id'])
+                Settlement.objects.create(group=group, payer=payer, payee=payee, amount=row['amount'], created_at=row['date'])
+            else:
+                paid_by = User.objects.get(id=row['paid_by']['id'])
+                expense = Expense.objects.create(
+                    group=group, description=row['description'], 
+                    total_amount=row['amount'], paid_by=paid_by, created_at=row['date']
+                )
+                for split in row['splits']:
+                    user = User.objects.get(id=split['user']['id'])
+                    ExpenseSplit.objects.create(expense=expense, user=user, amount_owed=split['amount'])
         return JsonResponse({'status': 'success'})
 
 @login_required

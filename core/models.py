@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 class Group(models.Model):
     name = models.CharField(max_length=255)
@@ -12,7 +13,8 @@ class Group(models.Model):
 class GroupMember(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    joined_at = models.DateTimeField(auto_now_add=True)
+    joined_at = models.DateTimeField(default=timezone.now)
+    left_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         unique_together = ('group', 'user')
@@ -31,7 +33,7 @@ class Expense(models.Model):
     description = models.CharField(max_length=255)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     paid_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='expenses_paid')
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
 
 class ExpenseSplit(models.Model):
     expense = models.ForeignKey(Expense, on_delete=models.CASCADE, related_name='splits')
@@ -43,7 +45,7 @@ class Settlement(models.Model):
     payer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='settlements_paid')
     payee = models.ForeignKey(User, on_delete=models.CASCADE, related_name='settlements_received')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
 
 class UserBalance(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='balances')
