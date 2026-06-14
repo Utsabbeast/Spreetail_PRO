@@ -24,4 +24,9 @@
 ### Case 3: Duplicate CSV Hashing Logic
 - **What went wrong:** When building the `CSVProcessor`, the AI wrote a duplicate detection algorithm that generated a hash based on `Date + Payer + Amount + Exact Description String`. Because row 4 was `Dinner at Marina Bites` and row 5 was `dinner - marina bites`, the slight casing and punctuation differences bypassed the exact string match, causing the duplicate check to fail.
 - **How I caught it:** I ran a Python test script (`test_importer.py`) simulating the CSV upload. I noticed both Marina Bites rows printed `Status: Success` instead of flagging as duplicates.
-- **What I changed:** I updated the duplicate detection rules to rely more heavily on `Date + Amount + Payer` clustering, acknowledging that human-entered descriptions will often have varying capitalization or hyphens for the exact same event.
+### Case 4: Python JSON Serialization Failure & Missing HTML Closing Tags
+- **What went wrong:** When we first deployed the CSV Importer UI, clicking the "Analyze Data" button did absolutely nothing. The AI made two critical errors: 
+  1. It accidentally deleted a `</div>` closing tag from a previous modal, causing the Import modal to be nested inside a hidden container.
+  2. In the backend, the AI tried to return raw Django `User` objects and `datetime` objects through a `JsonResponse`, which crashed the server with a `TypeError: Object of type User is not JSON serializable`.
+- **How I caught it:** I clicked the button and saw nothing happening. I realized the modal wasn't rendering properly in the DOM and then inspected the network logs to see a 500 Internal Server Error coming from the Django API.
+- **What I changed:** I forced the AI to replace the missing `</div>` tag in `dashboard.html`. For the backend, I wrote a quick serialization loop inside `importer.py` that converts the `datetime` objects to ISO format strings and the `User` models into simple dictionaries (`{'id': user.id, 'username': user.username}`) *before* they are passed to the `JsonResponse`. This resolved the crash and restored the UI pipeline.
