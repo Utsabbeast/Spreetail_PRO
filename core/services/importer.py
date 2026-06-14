@@ -295,4 +295,16 @@ class CSVProcessor:
             
             results.append(result)
 
+        for r in results:
+            if 'parsed_data' in r and isinstance(r['parsed_data'], dict):
+                pd = r['parsed_data']
+                if 'date' in pd and hasattr(pd['date'], 'isoformat'): pd['date'] = pd['date'].isoformat()
+                if 'amount' in pd: pd['amount'] = float(pd['amount'])
+                if 'paid_by' in pd: pd['paid_by'] = {'id': pd['paid_by'].id, 'username': pd['paid_by'].username}
+                if 'payee' in pd: pd['payee'] = {'id': pd['payee'].id, 'username': pd['payee'].username}
+                if 'splits' in pd:
+                    for s in pd['splits']:
+                        if 'user' in s: s['user'] = {'id': s['user'].id, 'username': s['user'].username}
+                        if 'amount' in s: s['amount'] = float(s['amount'])
+
         return results
