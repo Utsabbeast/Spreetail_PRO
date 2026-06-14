@@ -260,7 +260,7 @@ async function loadExpenses() {
     data.expenses.forEach(e => {
         const div = document.createElement('div');
         div.className = 'expense-card';
-        div.innerHTML = `<div class="expense-info"><h4><i class='bx bx-receipt'></i> ${e.description}</h4><p>Paid by ${e.paid_by} on ${new Date(e.created_at).toLocaleDateString()}</p></div><div class="expense-amount">$${e.total_amount.toFixed(2)}</div>`;
+        div.innerHTML = `<div class="expense-info"><h4><i class='bx bx-receipt'></i> ${e.description}</h4><p>Paid by ${e.paid_by} on ${new Date(e.created_at).toLocaleDateString()}</p></div><div class="expense-amount">₹${e.total_amount.toFixed(2)}</div>`;
         div.onclick = () => openChatModal(e.id);
         list.appendChild(div);
     });
@@ -277,7 +277,7 @@ async function loadBalances() {
         const div = document.createElement('div');
         const isPos = b.net_balance > 0;
         div.className = `balance-card ${isPos ? 'positive' : 'negative'}`;
-        div.innerHTML = `<div class="expense-info"><h4><i class='bx bx-user'></i> ${b.username}</h4><p>${isPos ? 'Gets back' : 'Owes'}</p></div><div class="balance-amount">${isPos ? '+' : '-'}$${Math.abs(b.net_balance).toFixed(2)}</div>`;
+        div.innerHTML = `<div class="expense-info"><h4><i class='bx bx-user'></i> ${b.username}</h4><p>${isPos ? 'Gets back' : 'Owes'}</p></div><div class="balance-amount">${isPos ? '+' : '-'}₹${Math.abs(b.net_balance).toFixed(2)}</div>`;
         list.appendChild(div);
     });
 }
@@ -330,9 +330,9 @@ function renderSplitInputs() {
         <div class="split-row">
             <span>${m.username}</span>
             <div style="display:flex; align-items:center; gap:0.5rem;">
-                ${strat === 'percent' ? '%' : strat === 'share' ? 'Shares' : '$'}
+                ${strat === 'percent' ? '%' : strat === 'share' ? 'Shares' : '₹'}
                 <input type="number" step="0.01" class="split-val" data-uid="${m.id}" value="${strat==='share'?1:0}">
-                ${(strat === 'percent' || strat === 'share') ? `&nbsp; => $<span class="calc-amt" data-uid="${m.id}">0.00</span>` : ''}
+                ${(strat === 'percent' || strat === 'share') ? `&nbsp; => ₹<span class="calc-amt" data-uid="${m.id}">0.00</span>` : ''}
             </div>
         </div>
     `).join('');
